@@ -8,6 +8,35 @@ Members: rozifus,jtrain
 License: see LICENSE.txt
 
 
+Installing the Game (dev env)
+-------------------
+
+virtualenv
+==========
+
+# creates an empty virtual environment
+virtualenv .
+
+# activates the virtual environment
+source bin/activate
+
+clone game
+==========
+
+git clone git@github.com:rozifus/TeamStrong12_9.git tstrong
+
+install reqs
+============
+
+# one the game zip file unzipped (or git cloned) to tstrong:
+pip install -r tstrong/requirements.txt
+
+run game
+========
+
+cd tstrong
+python run_game.py
+
 Running the Game
 ----------------
 
