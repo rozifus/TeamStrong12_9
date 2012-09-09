@@ -1,0 +1,4 @@
+
+# alpha 1.2 of pyglet.
+hg+https://pyglet.googlecode.com/hg/
+
