@@ -1,4 +1,2 @@
-
-# alpha 1.2 of pyglet.
-hg+https://pyglet.googlecode.com/hg/
-
+# install pygame.
+hg+http://bitbucket.org/pygame/pygame
