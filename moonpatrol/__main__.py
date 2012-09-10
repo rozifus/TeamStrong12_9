@@ -34,6 +34,25 @@ class Background(object):
         screen.blit(self._image, (self._x1, 0))
         screen.blit(self._image, (self._x2, 0))
 
+class Bullet(object):
+
+    def __init__(self, x, y, speedx, speedy):
+        self._x = x
+        self._y = y
+        self._speedx = speedx
+        self._speedy = speedy
+
+    def update(self):
+        self._x += self._speedx
+        self._y -= self._speedy
+
+    def render(self, screen):
+        pygame.draw.line(screen,
+            (255, 255, 255),
+            (self._x, self._y),
+            (self._x, self._y+5),
+            3)
+
 class Car(object):
     def __init__(self, image, groundy):
         self._speed = 0
@@ -84,7 +103,8 @@ def main():
 
     clock = pygame.time.Clock()
     pygame.mixer.music.load(filepath('pink-summertime.mod'))
-    pygame.mixer.music.play(-1)
+    #pygame.mixer.music.play(-1)
+    bullets = []
 
     while 1:
         for event in pygame.event.get():
@@ -93,6 +113,11 @@ def main():
                 if event.key == JUMP: car.jump()
                 if event.key == SPEEDUP: car.change_speed(1)
                 if event.key == SLOWDOWN: car.change_speed(-1)
+                if event.key == JUMP: 
+                    bullets.extend([
+                        Bullet(car._x, car._y, 0, 10),
+                        Bullet(car._x, car._y, 10, 0)
+                        ])
 
         clock.tick(60)
         # blit first bit.
@@ -100,4 +125,6 @@ def main():
         background.render(screen)
         car.update()
         car.render(screen)
+        [b.update() for b in bullets]
+        [b.render(screen) for b in bullets]
         pygame.display.flip()
