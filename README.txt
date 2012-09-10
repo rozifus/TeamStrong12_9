@@ -10,7 +10,7 @@ License: see LICENSE.txt
 Credit for assets used
 ----------------------
 
-summertime.ogg - chiptune accessed from http://www.chiptune.com/
+pink-summertime.mod - chiptune accessed from http://www.chiptune.com/
 
 
 
