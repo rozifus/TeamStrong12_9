@@ -83,7 +83,7 @@ def main():
                     settings.DISPLAY_SIZE[0], settings.SCROLL_SPEED)
 
     clock = pygame.time.Clock()
-    pygame.mixer.music.load(filepath('summertime.ogg'))
+    pygame.mixer.music.load(filepath('pink-summertime.mod'))
     pygame.mixer.music.play(-1)
 
     while 1:
