@@ -1,0 +1,31 @@
+pic - background
+pic - second background parallax
+pic - enemies x 4 (or programmable colours)
+pic - buggy
+pic - enemy cruiser
+pic - rock
+pic - ground (bumpy ground)
+
+Enemies from top
+Cruisers from side
+
+Enemies drop bombs
+bomb explosion animation
+bomb causes potholes
+
+buggy explosion animation
+
+collisions - bullets and enemies
+collisions - enemy bombs and buggy
+collisions - buggy and hole / rock
+collisions - buggy and cruiser enemy
+
+Potholes
+Rocks
+
+Score display at top of screen
+Levels change settings and enemies and backgrounds
+
+Starting menu 
+end game screen
+
