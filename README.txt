@@ -7,6 +7,12 @@ Team: team-strong-
 Members: rozifus,jtrain
 License: see LICENSE.txt
 
+Credit for assets used
+----------------------
+
+summertime.ogg - chiptune accessed from http://www.chiptune.com/
+
+
 
 Installing the Game (dev env)
 -------------------
