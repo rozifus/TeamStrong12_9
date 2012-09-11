@@ -16,6 +16,24 @@ def offscreen(x, y):
     maxx, maxy = settings.DISPLAY_SIZE
     return x > maxx or x < 0 or y > maxy or y < 0
 
+def nearborder(entity, dist, rect=None):
+    # returns bool list for near [up, right, down, left]
+    near = [False] * 4
+    entity_size = entity._image.get_size()
+    if rect == None: 
+        rect = pygame.Rect(0,0,settings.DISPLAY_SIZE[0],
+                               settings.DISPLAY_SIZE[1])
+    if entity.rect.right + dist > rect.right:
+        near[1] = True
+    if entity.rect.x - dist < rect.x:
+        near[3] = True
+    if entity.rect.bottom + dist > rect.bottom:
+        near[2] = True
+    if entity.rect.y - dist < rect.y:
+        near[0] = True
+    return near
+
+
 class Background(object):
 
     def __init__(self, image, maxx, scrollspeed):
@@ -59,6 +77,39 @@ class Bullet(pygame.sprite.Sprite):
         self.rect.move_ip(self._speedx, -self._speedy)
         if offscreen(*self.rect.topleft):
             self.kill()
+
+class Ufo(pygame.sprite.Sprite):
+
+    WIDTH = 3
+    _image = pygame.transform.scale(
+                pygame.image.load(filepath('ufo.png')),
+                (60,24))
+
+    def __init__(self, x, y, container, *groups):
+        super(Ufo, self).__init__(*groups)
+        self.rect = pygame.Rect(x, y, Ufo._image.get_size()[0], Ufo._image.get_size()[1] )
+        self.image = Ufo._image 
+        self.container = container
+        self._accelx = 0.1 
+        self._accely = 0.1 
+        self._speedx = 2  
+        self._speedy = 2
+
+    def update(self):
+        self.rect.move_ip(self._speedx, -self._speedy)
+
+        near = nearborder(self, 80, self.container)
+        if near[0]: 
+            self._speedy -= self._accely
+        if near[2]:
+            self._speedy += self._accely
+        if near[1]:
+            self._speedx -= self._accelx
+        if near[3]: 
+            self._speedx += self._accelx
+        if offscreen(*self.rect.topleft):
+            self.kill()
+
 
 class Car(object):
     def __init__(self, image, groundy):
@@ -115,6 +166,10 @@ def main():
     pygame.mixer.music.load(filepath('pink-summertime.mod'))
     pygame.mixer.music.play(-1)
     bullets = pygame.sprite.Group()
+    enemies = pygame.sprite.Group()
+    ufo = Ufo(100, 100, pygame.Rect(0,0, settings.DISPLAY_SIZE[0], 
+                                    settings.DISPLAY_SIZE[1]-300), 
+              enemies)
 
     while 1:
         for event in pygame.event.get():
@@ -133,9 +188,11 @@ def main():
         screen.fill(settings.BLACK)
         background.render(screen)
         car.update()
+        enemies.update()
         bullets.update()
 
         car.render(screen)
+        enemies.draw(screen)
         bullets.draw(screen)
 
         pygame.display.flip()
