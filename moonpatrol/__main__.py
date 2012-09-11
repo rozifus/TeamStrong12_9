@@ -33,6 +33,19 @@ def nearborder(entity, dist, rect=None):
         near[0] = True
     return near
 
+class Pothole(pygame.sprite.Sprite):
+    def __init__(self, image, *groups, **kwargs):
+        x = kwargs.get('x', settings.DISPLAY_SIZE[0])
+        super(Pothole, self).__init__(*groups)
+        self.rect = pygame.Rect(
+            (x - image.get_width() / 2, settings.GROUND_HEIGHT-1),
+             image.get_size())
+        self.image = pygame.transform.scale2x(image)
+
+    def update(self):
+        self.rect.move_ip(-settings.GROUND_SPEED, 0)
+        if offscreen(*self.rect.center):
+            self.kill()
 
 class Background(object):
 
@@ -110,16 +123,18 @@ class Ufo(pygame.sprite.Sprite):
         if offscreen(*self.rect.topleft):
             self.kill()
 
-
-class Car(object):
-    def __init__(self, image, groundy):
+class Car(pygame.sprite.Sprite):
+    def __init__(self, image, groundy, *groups):
+        super(Car, self).__init__(*groups)
         self._speed = 0
-        self._image = image.convert_alpha()
-        self._x = 100
+        self.image = image.convert_alpha()
+        self.rect = pygame.Rect(
+            (100, groundy), image.get_size())
+
         self._xspeed = 0
-        self._y = groundy
         self._yspeed = 0
         self._groundy = groundy
+
         self._jumping = False
         self._sounds = {
             'jump': pygame.mixer.Sound(filepath('jump.wav'))}
@@ -137,16 +152,14 @@ class Car(object):
 
     def update(self):
         self._yspeed += settings.GRAVITY
-        self._y += self._yspeed
-        if self._y >= self._groundy:
+        self.rect.move_ip(self._xspeed, self._yspeed)
+        if self.rect.bottom >= self._groundy:
             self._yspeed = 0
-            self._y = self._groundy
+            self.rect.bottom = self._groundy
             self._jumping = False
 
-        self._x += self._xspeed
-
-    def render(self, screen):
-        screen.blit(self._image, (self._x, self._y))
+def makepothole():
+    return not random.randint(0, 100)
 
 def main():
     """ your app starts here
@@ -154,9 +167,13 @@ def main():
     pygame.init()
 
     screen = pygame.display.set_mode(settings.DISPLAY_SIZE)
+
     _bground = pygame.image.load(filepath('bground.png'))
     _car = pygame.image.load(filepath('patrol.png'))
-    car = Car(_car, 400)
+    _pothole = pygame.image.load(filepath('pothole.png'))
+
+    allsprites = pygame.sprite.Group()
+    car = Car(_car, settings.GROUND_HEIGHT, allsprites)
     bground = pygame.transform.scale(_bground, settings.DISPLAY_SIZE)
 
     background = Background(bground, 
@@ -165,11 +182,14 @@ def main():
     clock = pygame.time.Clock()
     pygame.mixer.music.load(filepath('pink-summertime.mod'))
     pygame.mixer.music.play(-1)
+
+    # groups
     bullets = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
     ufo = Ufo(100, 100, pygame.Rect(0,0, settings.DISPLAY_SIZE[0], 
                                     settings.DISPLAY_SIZE[1]-300), 
               enemies)
+    potholes = pygame.sprite.Group()
 
     while 1:
         for event in pygame.event.get():
@@ -180,19 +200,32 @@ def main():
                 if event.key == SLOWDOWN: car.change_speed(-1)
                 if event.key == QUIT: sys.exit()
                 if event.key == JUMP: 
-                    Bullet(car._x, car._y, 0, 10, bullets)
-                    Bullet(car._x, car._y, 10, 0, bullets)
+                    rect = car.rect
+                    Bullet(rect.left, rect.top, 0, 10, bullets)
+                    Bullet(rect.centerx, rect.centery, 10, 0, bullets)
 
         clock.tick(60)
+
+        if makepothole():
+            Pothole(_pothole, potholes)
+
         # blit first bit.
         screen.fill(settings.BLACK)
         background.render(screen)
-        car.update()
+
         enemies.update()
+        potholes.update()
+        allsprites.update()
         bullets.update()
 
-        car.render(screen)
+        allsprites.draw(screen)
         enemies.draw(screen)
         bullets.draw(screen)
+        potholes.draw(screen)
+
+        # check player dead conditions.
+        if pygame.sprite.spritecollideany(car, potholes):
+            car.kill()
+            print "DED!"
 
         pygame.display.flip()
