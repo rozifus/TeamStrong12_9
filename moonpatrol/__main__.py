@@ -11,6 +11,10 @@ JUMP = getattr(pygame, settings.JUMP)
 SPEEDUP = getattr(pygame, settings.SPEEDUP)
 SLOWDOWN = getattr(pygame, settings.SLOWDOWN)
 
+def offscreen(x, y):
+    maxx, maxy = settings.DISPLAY_SIZE
+    return x > maxx or x < 0 or y > maxy or y < 0
+
 class Background(object):
 
     def __init__(self, image, maxx, scrollspeed):
@@ -34,9 +38,10 @@ class Background(object):
         screen.blit(self._image, (self._x1, 0))
         screen.blit(self._image, (self._x2, 0))
 
-class Bullet(object):
+class Bullet(pygame.sprite.Sprite):
 
-    def __init__(self, x, y, speedx, speedy):
+    def __init__(self, x, y, speedx, speedy, *groups):
+        super(Bullet, self).__init__(*groups)
         self._x = x
         self._y = y
         self._speedx = speedx
@@ -45,12 +50,14 @@ class Bullet(object):
     def update(self):
         self._x += self._speedx
         self._y -= self._speedy
+        if offscreen(self._x, self._y):
+            self.kill()
 
     def render(self, screen):
         pygame.draw.line(screen,
             (255, 255, 255),
             (self._x, self._y),
-            (self._x, self._y+5),
+            (self._x+self._speedx, self._y+self._speedy),
             3)
 
 class Car(object):
@@ -63,16 +70,19 @@ class Car(object):
         self._yspeed = 0
         self._groundy = groundy
         self._jumping = False
+        self._sounds = {
+            'jump': pygame.mixer.Sound(filepath('jump.wav'))}
 
     def change_speed(self, direction):
-        self._xspeed += direction
-        self._xspeed = max(self._xspeed, -1)
-        self._xspeed = min(self._xspeed, 1)
+        self._xspeed += direction * settings.BUGGY_SPEED
+        self._xspeed = max(self._xspeed, -settings.BUGGY_SPEED)
+        self._xspeed = min(self._xspeed, settings.BUGGY_SPEED)
 
     def jump(self, force=50):
         if not self._jumping:
             self._yspeed = -force
             self._jumping = True
+            self._sounds['jump'].play()
 
     def update(self):
         self._yspeed += settings.GRAVITY
@@ -86,6 +96,16 @@ class Car(object):
 
     def render(self, screen):
         screen.blit(self._image, (self._x, self._y))
+
+class BulletGroup(pygame.sprite.Group):
+    """
+    A special bullet group that uses the 'render' method of its
+    contained sprites to draw instead of the 'image' and 'rect'
+    attributes.
+    """
+    def draw(self, surface):
+        for s in self.sprites():
+            s.render(surface)
 
 def main():
     """ your app starts here
@@ -103,8 +123,8 @@ def main():
 
     clock = pygame.time.Clock()
     pygame.mixer.music.load(filepath('pink-summertime.mod'))
-    #pygame.mixer.music.play(-1)
-    bullets = []
+    pygame.mixer.music.play(-1)
+    bullets = BulletGroup()
 
     while 1:
         for event in pygame.event.get():
@@ -114,17 +134,17 @@ def main():
                 if event.key == SPEEDUP: car.change_speed(1)
                 if event.key == SLOWDOWN: car.change_speed(-1)
                 if event.key == JUMP: 
-                    bullets.extend([
-                        Bullet(car._x, car._y, 0, 10),
-                        Bullet(car._x, car._y, 10, 0)
-                        ])
+                    Bullet(car._x, car._y, 0, 10, bullets)
+                    Bullet(car._x, car._y, 10, 0, bullets)
 
         clock.tick(60)
         # blit first bit.
         screen.fill(settings.BLACK)
         background.render(screen)
         car.update()
+        bullets.update()
+
         car.render(screen)
-        [b.update() for b in bullets]
-        [b.render(screen) for b in bullets]
+        bullets.draw(screen)
+
         pygame.display.flip()

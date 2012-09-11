@@ -6,6 +6,8 @@ SCROLL_SPEED = 2
 
 GRAVITY = 9.81
 
+BUGGY_SPEED = 10
+
 # CONTROLS
 
 #  jump
