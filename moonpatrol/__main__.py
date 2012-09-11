@@ -40,25 +40,24 @@ class Background(object):
 
 class Bullet(pygame.sprite.Sprite):
 
+    WIDTH = 3
+
     def __init__(self, x, y, speedx, speedy, *groups):
         super(Bullet, self).__init__(*groups)
-        self._x = x
-        self._y = y
+        self.rect = pygame.Rect(x, y, x+speedx, y+speedy)
+        self.image = pygame.Surface((speedx or self.WIDTH,
+                                    speedy or self.WIDTH))
+        pygame.draw.line(
+            self.image,
+            settings.BULLET_COLOUR,
+            (0, 0), (speedx, speedy), self.WIDTH)
         self._speedx = speedx
         self._speedy = speedy
 
     def update(self):
-        self._x += self._speedx
-        self._y -= self._speedy
-        if offscreen(self._x, self._y):
+        self.rect.move_ip(self._speedx, -self._speedy)
+        if offscreen(*self.rect.topleft):
             self.kill()
-
-    def render(self, screen):
-        pygame.draw.line(screen,
-            (255, 255, 255),
-            (self._x, self._y),
-            (self._x+self._speedx, self._y+self._speedy),
-            3)
 
 class Car(object):
     def __init__(self, image, groundy):
@@ -97,16 +96,6 @@ class Car(object):
     def render(self, screen):
         screen.blit(self._image, (self._x, self._y))
 
-class BulletGroup(pygame.sprite.Group):
-    """
-    A special bullet group that uses the 'render' method of its
-    contained sprites to draw instead of the 'image' and 'rect'
-    attributes.
-    """
-    def draw(self, surface):
-        for s in self.sprites():
-            s.render(surface)
-
 def main():
     """ your app starts here
     """
@@ -124,7 +113,7 @@ def main():
     clock = pygame.time.Clock()
     pygame.mixer.music.load(filepath('pink-summertime.mod'))
     pygame.mixer.music.play(-1)
-    bullets = BulletGroup()
+    bullets = pygame.sprite.Group()
 
     while 1:
         for event in pygame.event.get():
