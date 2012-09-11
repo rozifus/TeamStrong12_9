@@ -10,6 +10,7 @@ import settings
 JUMP = getattr(pygame, settings.JUMP)
 SPEEDUP = getattr(pygame, settings.SPEEDUP)
 SLOWDOWN = getattr(pygame, settings.SLOWDOWN)
+QUIT = getattr(pygame, settings.QUIT)
 
 def offscreen(x, y):
     maxx, maxy = settings.DISPLAY_SIZE
@@ -122,6 +123,7 @@ def main():
                 if event.key == JUMP: car.jump()
                 if event.key == SPEEDUP: car.change_speed(1)
                 if event.key == SLOWDOWN: car.change_speed(-1)
+                if event.key == QUIT: sys.exit()
                 if event.key == JUMP: 
                     Bullet(car._x, car._y, 0, 10, bullets)
                     Bullet(car._x, car._y, 10, 0, bullets)
