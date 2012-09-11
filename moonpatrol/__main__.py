@@ -21,7 +21,7 @@ class Pothole(pygame.sprite.Sprite):
         x = kwargs.get('x', settings.DISPLAY_SIZE[0])
         super(Pothole, self).__init__(*groups)
         self.rect = pygame.Rect(
-            (x - image.get_width() / 2, settings.GROUND_HEIGHT),
+            (x - image.get_width() / 2, settings.GROUND_HEIGHT-1),
              image.get_size())
         self.image = pygame.transform.scale2x(image)
 
@@ -110,7 +110,7 @@ class Car(pygame.sprite.Sprite):
             self._jumping = False
 
 def makepothole():
-    return not random.randint(0, 10)
+    return not random.randint(0, 100)
 
 def main():
     """ your app starts here
@@ -161,11 +161,16 @@ def main():
         background.render(screen)
 
         potholes.update()
-        car.update()
+        allsprites.update()
         bullets.update()
 
         allsprites.draw(screen)
         bullets.draw(screen)
         potholes.draw(screen)
+
+        # check player dead conditions.
+        if pygame.sprite.spritecollideany(car, potholes):
+            car.kill()
+            print "DED!"
 
         pygame.display.flip()
