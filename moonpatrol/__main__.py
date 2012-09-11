@@ -74,15 +74,18 @@ class Bullet(pygame.sprite.Sprite):
         if offscreen(*self.rect.topleft):
             self.kill()
 
-class Car(object):
-    def __init__(self, image, groundy):
+class Car(pygame.sprite.Sprite):
+    def __init__(self, image, groundy, *groups):
+        super(Car, self).__init__(*groups)
         self._speed = 0
-        self._image = image.convert_alpha()
-        self._x = 100
+        self.image = image.convert_alpha()
+        self.rect = pygame.Rect(
+            (100, groundy), image.get_size())
+
         self._xspeed = 0
-        self._y = groundy
         self._yspeed = 0
         self._groundy = groundy
+
         self._jumping = False
         self._sounds = {
             'jump': pygame.mixer.Sound(filepath('jump.wav'))}
@@ -100,16 +103,11 @@ class Car(object):
 
     def update(self):
         self._yspeed += settings.GRAVITY
-        self._y += self._yspeed
-        if self._y >= self._groundy:
+        self.rect.move_ip(self._xspeed, self._yspeed)
+        if self.rect.bottom >= self._groundy:
             self._yspeed = 0
-            self._y = self._groundy
+            self.rect.bottom = self._groundy
             self._jumping = False
-
-        self._x += self._xspeed
-
-    def render(self, screen):
-        screen.blit(self._image, (self._x, self._y))
 
 def makepothole():
     return not random.randint(0, 10)
@@ -125,7 +123,8 @@ def main():
     _car = pygame.image.load(filepath('patrol.png'))
     _pothole = pygame.image.load(filepath('pothole.png'))
 
-    car = Car(_car, settings.GROUND_HEIGHT)
+    allsprites = pygame.sprite.Group()
+    car = Car(_car, settings.GROUND_HEIGHT, allsprites)
     bground = pygame.transform.scale(_bground, settings.DISPLAY_SIZE)
 
     background = Background(bground, 
@@ -148,8 +147,9 @@ def main():
                 if event.key == SLOWDOWN: car.change_speed(-1)
                 if event.key == QUIT: sys.exit()
                 if event.key == JUMP: 
-                    Bullet(car._x, car._y, 0, 10, bullets)
-                    Bullet(car._x, car._y, 10, 0, bullets)
+                    rect = car.rect
+                    Bullet(rect.left, rect.top, 0, 10, bullets)
+                    Bullet(rect.centerx, rect.centery, 10, 0, bullets)
 
         clock.tick(60)
 
@@ -164,7 +164,7 @@ def main():
         car.update()
         bullets.update()
 
-        car.render(screen)
+        allsprites.draw(screen)
         bullets.draw(screen)
         potholes.draw(screen)
 
