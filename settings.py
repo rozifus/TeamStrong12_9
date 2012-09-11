@@ -1,8 +1,13 @@
 DISPLAY_SIZE = (800, 600)
+GROUND_HEIGHT = 400
 
 BACKGROUND_FLICKER = (20, 22)
 
+# First parallax speed.
 SCROLL_SPEED = 2 
+
+# ground (potholes etc.) speed.
+GROUND_SPEED = 4
 
 GRAVITY = 9.81
 

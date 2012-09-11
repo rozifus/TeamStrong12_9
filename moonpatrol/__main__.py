@@ -16,6 +16,20 @@ def offscreen(x, y):
     maxx, maxy = settings.DISPLAY_SIZE
     return x > maxx or x < 0 or y > maxy or y < 0
 
+class Pothole(pygame.sprite.Sprite):
+    def __init__(self, image, *groups, **kwargs):
+        x = kwargs.get('x', settings.DISPLAY_SIZE[0])
+        super(Pothole, self).__init__(*groups)
+        self.rect = pygame.Rect(
+            (x - image.get_width() / 2, settings.GROUND_HEIGHT),
+             image.get_size())
+        self.image = pygame.transform.scale2x(image)
+
+    def update(self):
+        self.rect.move_ip(-settings.GROUND_SPEED, 0)
+        if offscreen(*self.rect.center):
+            self.kill()
+
 class Background(object):
 
     def __init__(self, image, maxx, scrollspeed):
@@ -97,15 +111,21 @@ class Car(object):
     def render(self, screen):
         screen.blit(self._image, (self._x, self._y))
 
+def makepothole():
+    return not random.randint(0, 10)
+
 def main():
     """ your app starts here
     """
     pygame.init()
 
     screen = pygame.display.set_mode(settings.DISPLAY_SIZE)
+
     _bground = pygame.image.load(filepath('bground.png'))
     _car = pygame.image.load(filepath('patrol.png'))
-    car = Car(_car, 400)
+    _pothole = pygame.image.load(filepath('pothole.png'))
+
+    car = Car(_car, settings.GROUND_HEIGHT)
     bground = pygame.transform.scale(_bground, settings.DISPLAY_SIZE)
 
     background = Background(bground, 
@@ -114,7 +134,10 @@ def main():
     clock = pygame.time.Clock()
     pygame.mixer.music.load(filepath('pink-summertime.mod'))
     pygame.mixer.music.play(-1)
+
+    # groups
     bullets = pygame.sprite.Group()
+    potholes = pygame.sprite.Group()
 
     while 1:
         for event in pygame.event.get():
@@ -129,13 +152,20 @@ def main():
                     Bullet(car._x, car._y, 10, 0, bullets)
 
         clock.tick(60)
+
+        if makepothole():
+            Pothole(_pothole, potholes)
+
         # blit first bit.
         screen.fill(settings.BLACK)
         background.render(screen)
+
+        potholes.update()
         car.update()
         bullets.update()
 
         car.render(screen)
         bullets.draw(screen)
+        potholes.draw(screen)
 
         pygame.display.flip()
