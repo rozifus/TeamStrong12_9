@@ -170,6 +170,27 @@ def makepothole(potholes):
     if not random.randint(0, 500):
         Pothole(potholes)
 
+class GameState(object):
+
+    def __init__(self):
+        self._initialtime = time.time()
+        self.time = 0
+        self.points = 0
+        self.lives = 3
+        self._distance = 0
+
+    def update(self):
+        self.time = (time.time() - self._initialtime)
+
+    @property
+    def distance(self):
+        return self._distance / 100
+
+    def incdist(self):
+        self._distance += 1
+
+    def incpoint(self):
+        self.points += 1
 
 def makeenemy(enemies):
     if not random.randint(0, 50):
@@ -177,6 +198,20 @@ def makeenemy(enemies):
         ufo = Ufo(random.randint(50, 200), 100,
                   pygame.Rect(0,0, width, height - 300),
                   enemies)
+
+def makehud(time, points, lives, distance):
+    surf = pygame.Surface((350, 90))
+    surf.fill((200, 114, 53))
+    font = makehud.font
+    time = font.render('TIME\t%d' % int(time), False, settings.HUD_TEXT)
+    points = font.render('POINT\t%d' % int(points), False, settings.HUD_TEXT)
+    lives = font.render('LIVES\t%d' % int(lives), False, settings.HUD_TEXT)
+    distance = font.render('DIST\t%s' % ('|'*distance), False, settings.HUD_TEXT)
+    surf.blit(time, (5, 10))
+    surf.blit(points, (5, 40))
+    surf.blit(lives, (5, 70))
+    surf.blit(distance, (150, 40))
+    return surf
 
 def main():
     """ your app starts here
@@ -220,6 +255,11 @@ def main():
     potholes = pygame.sprite.Group()
     bgrounds = [starfield, background, midground, ground]
 
+    _font = pygame.font.Font(filepath('amiga4ever.ttf'), 16)
+    makehud.font = _font
+
+    gs = GameState()
+
     while 1:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
@@ -243,6 +283,7 @@ def main():
         # blit first bit.
         [b.render(screen) for b in bgrounds]
 
+        gs.update();gs.incdist()
         enemies.update()
         potholes.update()
         allsprites.update()
@@ -255,18 +296,24 @@ def main():
 
         # check player dead conditions.
         if pygame.sprite.spritecollideany(car, potholes):
-            car.kill()
-            print "DED!"
+            gs.lives -= 1
 
         # check enemy dead conditions.
         collided = pygame.sprite.groupcollide(
                         bullets, enemies, True, True)
-        if collided:
-            lastkill = collided
 
         for ufos in collided.values():
             for ufo in ufos:
                 ufo._sounds['dead'].play()
+                gs.incpoint()
 
+        # HUD display.
+        hud = makehud(
+            time=gs.time,
+            points=gs.points,
+            lives=gs.lives,
+            distance=gs.distance)
+
+        screen.blit(hud, (100, 500))
 
         pygame.display.flip()
