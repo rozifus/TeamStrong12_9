@@ -57,7 +57,7 @@ class Background(object):
     def __init__(self, image, maxx, y, scrollspeed):
         self._scrollspeed = scrollspeed
         self._maxx = maxx
-        self._image = image
+        self._image = image.convert_alpha()
         self._x1 = 0
         self._x2 = maxx
         self._y = y
@@ -187,6 +187,7 @@ def main():
 
     _bground = load(filepath('bground.png'))
     _ground = scale2x(load(filepath('ground.png')))
+    _midground = scale2x(load(filepath('mountains.png')))
     _car = scale2x(load(filepath('patrol.png')))
 
     allsprites = pygame.sprite.Group()
@@ -194,11 +195,15 @@ def main():
     bground = pygame.transform.scale(_bground, settings.DISPLAY_SIZE)
 
     background = Background(bground, 
-                    settings.DISPLAY_SIZE[0], 0, settings.SCROLL_SPEED)
+                    settings.DISPLAY_SIZE[0], 0,
+                    settings.SCROLL_SPEED)
     ground = Background(_ground,
                         settings.DISPLAY_SIZE[0],
                         settings.GROUND_HEIGHT,
                         settings.GROUND_SPEED)
+    midground = Background(_midground,
+                        settings.DISPLAY_SIZE[0], 200,
+                        settings.SCROLL_SPEED + 1)
 
     clock = pygame.time.Clock()
     pygame.mixer.music.load(filepath('pink-summertime.mod'))
@@ -208,7 +213,7 @@ def main():
     bullets = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
     potholes = pygame.sprite.Group()
-    bgrounds = [background, ground]
+    bgrounds = [background, midground, ground]
 
     while 1:
         for event in pygame.event.get():

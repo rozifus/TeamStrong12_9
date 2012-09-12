@@ -4,7 +4,7 @@ GROUND_HEIGHT = 400
 BACKGROUND_FLICKER = (20, 22)
 
 # First parallax speed.
-SCROLL_SPEED = 2 
+SCROLL_SPEED = 1 
 
 # ground (potholes etc.) speed.
 GROUND_SPEED = 4
