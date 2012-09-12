@@ -3,8 +3,10 @@ import time
 import random
 
 import pygame
+from pygame.transform import scale2x, scale
+from pygame.image import load
 
-from data import load, filepath
+from data import filepath
 import settings
 
 JUMP = getattr(pygame, settings.JUMP)
@@ -35,8 +37,7 @@ def nearborder(entity, dist, rect=None):
 
 class Pothole(pygame.sprite.Sprite):
 
-    _pothole = pygame.transform.scale2x(
-                pygame.image.load(filepath('pothole.png')))
+    _pothole = scale2x(load(filepath('pothole.png')))
 
     def __init__(self, *groups, **kwargs):
         x = kwargs.get('x', settings.DISPLAY_SIZE[0])
@@ -98,9 +99,8 @@ class Bullet(pygame.sprite.Sprite):
 
 class Ufo(pygame.sprite.Sprite):
 
-    _image = pygame.transform.scale(
-                pygame.image.load(filepath('ufo.png')),
-                (60,24))
+    _image = scale(load(filepath('ufo.png')), (60,24))
+
     def __init__(self, x, y, container, *groups):
         super(Ufo, self).__init__(*groups)
         width, height = self._image.get_size()
@@ -185,10 +185,9 @@ def main():
 
     screen = pygame.display.set_mode(settings.DISPLAY_SIZE)
 
-    _bground = pygame.image.load(filepath('bground.png'))
-    _ground = pygame.transform.scale2x(
-                pygame.image.load(filepath('ground.png')))
-    _car = pygame.image.load(filepath('patrol.png'))
+    _bground = load(filepath('bground.png'))
+    _ground = scale2x(load(filepath('ground.png')))
+    _car = scale2x(load(filepath('patrol.png')))
 
     allsprites = pygame.sprite.Group()
     car = Car(_car, settings.GROUND_HEIGHT, allsprites)
