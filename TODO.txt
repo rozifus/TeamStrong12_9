@@ -1,12 +1,6 @@
-pic - background
-pic - second background parallax
-pic - enemies x 4 (or programmable colours)
-pic - buggy
 pic - enemy cruiser
 pic - rock
-pic - ground (bumpy ground)
 
-Enemies from top
 Cruisers from side
 
 Enemies drop bombs
@@ -15,18 +9,27 @@ bomb causes potholes
 
 buggy explosion animation
 
-collisions - bullets and enemies
 collisions - enemy bombs and buggy
-collisions - buggy and hole / rock
 collisions - buggy and cruiser enemy
 
-Potholes
 Rocks
 
 Score display at top of screen
 Levels change settings and enemies and backgrounds
-sound effects - jump - enemies - explosion
+sound effects - enemies - crashed buggy
 
 Starting menu 
 end game screen
 
+
+## DONE
+Potholes
+collisions - buggy and hole / rock
+collisions - bullets and enemies
+sound effects - jump - explosion
+pic - background
+pic - second background parallax
+pic - ground (bumpy ground)
+pic - enemies x 4 (or programmable colours)
+pic - buggy
+Enemies from top
