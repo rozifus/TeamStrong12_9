@@ -1,8 +1,10 @@
 pic - enemy cruiser
 pic - rock
+pic - finish line
 
 Cruisers from side
 
+smart placement of finish line to end level
 Enemies drop bombs
 bomb explosion animation
 bomb causes potholes
