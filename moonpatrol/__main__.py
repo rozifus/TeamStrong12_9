@@ -185,6 +185,8 @@ def main():
 
     screen = pygame.display.set_mode(settings.DISPLAY_SIZE)
 
+    _starfield = pygame.transform.scale(load(filepath('starfield.png')),
+                                        (settings.DISPLAY_SIZE)).convert()
     _bground = load(filepath('bground.png'))
     _ground = scale2x(load(filepath('ground.png')))
     _midground = scale2x(load(filepath('mountains.png')))
@@ -194,9 +196,12 @@ def main():
     car = Car(_car, settings.GROUND_HEIGHT, allsprites)
     bground = pygame.transform.scale(_bground, settings.DISPLAY_SIZE)
 
+    starfield = Background(_starfield, 
+                    settings.DISPLAY_SIZE[0], 0, 0)
     background = Background(bground, 
                     settings.DISPLAY_SIZE[0], 0,
                     settings.SCROLL_SPEED)
+    
     ground = Background(_ground,
                         settings.DISPLAY_SIZE[0],
                         settings.GROUND_HEIGHT,
@@ -213,7 +218,7 @@ def main():
     bullets = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
     potholes = pygame.sprite.Group()
-    bgrounds = [background, midground, ground]
+    bgrounds = [starfield, background, midground, ground]
 
     while 1:
         for event in pygame.event.get():
