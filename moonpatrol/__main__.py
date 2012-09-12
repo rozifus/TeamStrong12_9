@@ -187,7 +187,7 @@ def main():
 
     _starfield = pygame.transform.scale(load(filepath('starfield.png')),
                                         (settings.DISPLAY_SIZE)).convert()
-    _bground = load(filepath('bground.png'))
+    _bground = load(filepath('mountains2.png'))
     _ground = scale2x(load(filepath('ground.png')))
     _midground = scale2x(load(filepath('mountains.png')))
     _car = scale2x(load(filepath('patrol.png')))
@@ -199,7 +199,7 @@ def main():
     starfield = Background(_starfield, 
                     settings.DISPLAY_SIZE[0], 0, 0)
     background = Background(bground, 
-                    settings.DISPLAY_SIZE[0], 0,
+                    settings.DISPLAY_SIZE[0], 100,
                     settings.SCROLL_SPEED)
     
     ground = Background(_ground,
