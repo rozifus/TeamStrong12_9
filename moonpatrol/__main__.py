@@ -54,27 +54,39 @@ class Pothole(pygame.sprite.Sprite):
 
 class Background(object):
 
-    def __init__(self, image, maxx, y, scrollspeed):
+    def __init__(self, images, maxx, y, scrollspeed, randomize=False):
+        if not isinstance(images, list): images = [images]
+
         self._scrollspeed = scrollspeed
+        self._randomize = randomize
         self._maxx = maxx
-        self._image = image.convert_alpha()
-        self._x1 = 0
-        self._x2 = maxx
+        self._images = images
+        # image map is list of [image_index, image_location]
+        self._image_map = [[0,0],] 
         self._y = y
 
     def render(self, screen):
-
-        # update first and second positions.
-        self._x1 -= self._scrollspeed
-        self._x2 -= self._scrollspeed
-        if self._x1 <= -self._maxx:
-            self._x1 = self._maxx
-        if self._x2 <= -self._maxx:
-            self._x2 = self._maxx
-
-        # blit second part.
-        screen.blit(self._image, (self._x1, self._y))
-        screen.blit(self._image, (self._x2, self._y))
+        # move all images left and blit
+        for im in self._image_map:
+            im[1] -= self._scrollspeed
+            screen.blit(self._images[im[0]], (im[1],self._y))
+        # while there are not enough images on screen
+        while(self._image_map[-1][1] < self._maxx):
+            # get info for the last image
+            last = self._image_map[-1]
+            # if we're going random pick a random new image
+            if self._randomize: 
+                next_image = random.randint(0, len(self._images))
+            # otherwise get the next image in our _images list
+            else: next_image = last[0]+1 % len(self._images)
+            # place the next image at the end of the last image
+            self._image_map.append(
+                    [ next_image, 
+                      last[1]+self._images[last[0]].get_size()[0] ] )
+        # if the first image has moved off screen, pop it!
+        if self._image_map[0][1] + \
+           self._images[self._image_map[0][0]].get_size()[0] < 0:
+                self._image_map.pop(0)
 
 class Bullet(pygame.sprite.Sprite):
 
@@ -170,6 +182,7 @@ def makepothole(potholes):
     if not random.randint(0, 500):
         Pothole(potholes)
 
+
 class GameState(object):
 
     def __init__(self):
@@ -222,10 +235,10 @@ def main():
 
     _starfield = pygame.transform.scale(load(filepath('starfield.png')),
                                         (settings.DISPLAY_SIZE)).convert()
-    _bground = load(filepath('mountains2.png'))
-    _ground = scale2x(load(filepath('ground.png')))
-    _midground = scale2x(load(filepath('mountains.png')))
-    _car = scale2x(load(filepath('patrol.png')))
+    _bground = load(filepath('mountains2.png')).convert_alpha()
+    _ground = scale2x(load(filepath('ground.png'))).convert_alpha()
+    _midground = scale2x(load(filepath('mountains.png'))).convert_alpha()
+    _car = scale2x(load(filepath('patrol.png'))).convert_alpha()
 
     allsprites = pygame.sprite.Group()
     car = Car(_car, settings.GROUND_HEIGHT, allsprites)
