@@ -72,13 +72,14 @@ class Background(object):
             screen.blit(self._images[im[0]], (im[1],self._y))
         # while there are not enough images on screen
         while(self._image_map[-1][1] < self._maxx):
+            print(self._image_map, self._images)
             # get info for the last image
             last = self._image_map[-1]
             # if we're going random pick a random new image
             if self._randomize: 
-                next_image = random.randint(0, len(self._images))
+                next_image = random.randint(0, len(self._images)-1)
             # otherwise get the next image in our _images list
-            else: next_image = last[0]+1 % len(self._images)
+            else: next_image = (last[0]+1) % len(self._images)
             # place the next image at the end of the last image
             self._image_map.append(
                     [ next_image, 
@@ -236,7 +237,8 @@ def main():
     _starfield = pygame.transform.scale(load(filepath('starfield.png')),
                                         (settings.DISPLAY_SIZE)).convert()
     _bground = load(filepath('mountains2.png')).convert_alpha()
-    _ground = scale2x(load(filepath('ground.png'))).convert_alpha()
+    _terrain00 = scale2x(load(filepath('terrain00.png'))).convert_alpha()
+    _terrain01 = scale2x(load(filepath('terrain01.png'))).convert_alpha()
     _midground = scale2x(load(filepath('mountains.png'))).convert_alpha()
     _car = scale2x(load(filepath('patrol.png'))).convert_alpha()
 
@@ -250,7 +252,7 @@ def main():
                     settings.DISPLAY_SIZE[0], 100,
                     settings.SCROLL_SPEED)
     
-    ground = Background(_ground,
+    ground = Background([_terrain00, _terrain01],
                         settings.DISPLAY_SIZE[0],
                         settings.GROUND_HEIGHT,
                         settings.GROUND_SPEED)
