@@ -241,7 +241,6 @@ def main():
         makeenemy(enemies)
 
         # blit first bit.
-        screen.fill(settings.BLACK)
         [b.render(screen) for b in bgrounds]
 
         enemies.update()
