@@ -72,7 +72,6 @@ class Background(object):
             screen.blit(self._images[im[0]], (im[1],self._y))
         # while there are not enough images on screen
         while(self._image_map[-1][1] < self._maxx):
-            print(self._image_map, self._images)
             # get info for the last image
             last = self._image_map[-1]
             # if we're going random pick a random new image
