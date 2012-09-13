@@ -66,11 +66,37 @@ class Pothole(pygame.sprite.Sprite):
         self.image = self._potholes[random.randint(0,len(self._potholes)-1)]
         self.rect = pygame.Rect( (x, settings.GROUND_HEIGHT-1), 
                                  self.image.get_size() )
+        self._new = True
 
     def update(self):
         self.rect.move_ip(-settings.GROUND_SPEED, 0)
-        if offscreen(*self.rect.center):
+        if offscreen(*self.rect.center) and not self._new:
             self.kill()
+        elif not offscreen(*self.rect.center):
+            self._new = False
+
+class Rock(pygame.sprite.Sprite):
+
+    _image = scale2x(load(filepath('rock00.png')))
+
+    def __init__(self, *groups):
+        super(Rock, self).__init__(*groups)
+        self.image = self._image
+        self.rect = pygame.Rect(
+            (settings.DISPLAY_SIZE[0], 
+             settings.GROUND_HEIGHT - self.image.get_size()[1]),
+            self.image.get_size())
+        self._sounds = {
+            'dead': pygame.mixer.Sound(filepath('explosion.wav'))}
+        self._new = True
+
+
+    def update(self):
+        self.rect.move_ip(-settings.GROUND_SPEED, 0)
+        if offscreen(*self.rect.center) and not self._new:
+            self.kill()
+        elif not offscreen(*self.rect.center):
+            self._new = False
 
 class Background(object):
 
@@ -242,12 +268,12 @@ class Car(pygame.sprite.Sprite):
             self.rect.bottom = self._groundy
             self._jumping = False
 
-def makepothole(potholes):
+def makepothole(*groups):
     if not random.randint(0, 500):
-        placepothole(settings.DISPLAY_SIZE[0], potholes)
+        placepothole(settings.DISPLAY_SIZE[0], *groups)
 
-def placepothole(x, potholes):
-    Pothole(x, potholes)
+def placepothole(x, *groups):
+    Pothole(x, *groups)
 
 class GameState(object):
 
@@ -271,9 +297,9 @@ class GameState(object):
     def incpoint(self):
         self.points += 1
 
-def makebomb(x, y, bombs):
+def makebomb(x, y, *groups):
     if not random.randint(0, settings.UFO_BOMB_CHANCE):
-        bomb = Bomb(x, y, bombs)
+        bomb = Bomb(x, y, *groups)
         bomb._sounds['drop'].play()
 
 def makeenemy(enemies):
@@ -282,6 +308,10 @@ def makeenemy(enemies):
         ufo = Ufo(random.randint(50, 200), 100,
                   pygame.Rect(0,0, width, height - 300),
                   enemies)
+
+def makerock(*groups):
+    if not random.randint(0, 50):
+        Rock(*groups)
 
 def makehud(time, points, lives, distance):
     surf = pygame.Surface((350, 90))
@@ -340,8 +370,10 @@ def main():
     # groups
     bullets = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
+    badthings = pygame.sprite.Group()
     ufos = pygame.sprite.Group()
     bombs = pygame.sprite.Group()
+    rocks = pygame.sprite.Group()
     potholes = pygame.sprite.Group()
     bgrounds = [starfield, background, midground, ground]
 
@@ -367,8 +399,21 @@ def main():
 
         clock.tick(60)
 
-        makepothole(potholes)
         makeenemy(enemies)
+
+        # only if there is below a certain threshold on screen.
+        badstuff = sum(map(len, [potholes, rocks, bombs]))
+        if badstuff < settings.MAX_BAD_STUFF:
+            makepothole(potholes, badthings)
+            makerock(rocks, badthings)
+
+        for ufo in enemies:
+            badstuff = sum(map(len, [potholes, rocks, bombs]))
+            if badstuff < settings.MAX_BAD_STUFF:
+                makebomb(
+                    ufo.rect.centerx,
+                    ufo.rect.bottom,
+                    bombs, badthings)
 
         # blit first bit.
         [b.render(screen) for b in bgrounds]
@@ -379,20 +424,25 @@ def main():
         bombs.update()
         allsprites.update()
         bullets.update()
+        rocks.update()
 
         allsprites.draw(screen)
         enemies.draw(screen)
         bullets.draw(screen)
         potholes.draw(screen)
         bombs.draw(screen)
+        rocks.draw(screen)
 
         # check player dead conditions.
-        if pygame.sprite.spritecollideany(car, potholes):
-            # ok player is dead, time to restart the level.
+        collided = pygame.sprite.spritecollide(car, badthings, False)
+        if collided:
+            # ok player collided with a bad thing should be dead... but 
             potholes.empty()
             enemies.empty()
             bullets.empty()
             bombs.empty()
+            rocks.empty()
+            badthings.empty()
             car.reset()
             car._sounds['dead'].play()
             gs.lives -= 1
@@ -407,9 +457,6 @@ def main():
                 ufo._sounds['dead'].play()
                 gs.incpoint()
 
-        for ufo in enemies:
-            makebomb(ufo.rect.x + ufo.rect.width/2, ufo.rect.bottom, bombs)
-
         # check for killed bombs.
         collided = pygame.sprite.groupcollide(
                         bullets, bombs, True, True)
@@ -419,6 +466,17 @@ def main():
                 bomb._sounds['dead'].play()
                 bomb.kill()
                 gs.incpoint()
+
+        # check for killed rocks.
+        collided = pygame.sprite.groupcollide(
+                        bullets, rocks, True, True)
+
+        for rock_colls in collided.values():
+            for rock in rock_colls:
+                rock._sounds['dead'].play()
+                rock.kill()
+                gs.incpoint()
+
 
         for bomb in bombs:
             if bomb.rect.bottom - 5 > settings.GROUND_HEIGHT:
