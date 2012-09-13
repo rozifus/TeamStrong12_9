@@ -18,6 +18,26 @@ def offscreen(x, y):
     maxx, maxy = settings.DISPLAY_SIZE
     return x > maxx or x < 0 or y > maxy or y < 0
 
+def checkendgame(gs):
+    return gs.lives == 0
+
+def endgame(screen, gs):
+    _starfield = pygame.transform.scale(load(filepath('starfield.png')),
+                                        (settings.DISPLAY_SIZE)).convert()
+    screen.blit(_starfield, (0, 0))
+
+    font = pygame.font.Font(filepath('amiga4ever.ttf'), 16)
+    msg = font.render('So.. looks like its all over then..', 
+                      False, settings.HUD_TEXT)
+    screen.blit(msg, (200, 200))
+    pygame.display.flip()
+
+    while 1:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == QUIT: sys.exit()
+
 def nearborder(entity, dist, rect=None):
     # returns bool list for near [up, right, down, left]
     near = [False] * 4
@@ -332,10 +352,10 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
             if event.type == pygame.KEYDOWN:
+                if event.key == QUIT: sys.exit()
                 if event.key == JUMP: car.jump()
                 if event.key == SPEEDUP: car.change_speed(1)
                 if event.key == SLOWDOWN: car.change_speed(-1)
-                if event.key == QUIT: sys.exit()
                 if event.key == JUMP: 
                     rect = car.rect
                     Bullet(rect.left, rect.top, 0, 10, bullets)
@@ -370,6 +390,7 @@ def main():
             potholes.empty()
             enemies.empty()
             bullets.empty()
+            bombs.empty()
             car.reset()
             car._sounds['dead'].play()
             gs.lives -= 1
@@ -401,3 +422,8 @@ def main():
         screen.blit(hud, (100, 500))
 
         pygame.display.flip()
+
+        if checkendgame(gs):
+            break
+
+    endgame(screen, gs)

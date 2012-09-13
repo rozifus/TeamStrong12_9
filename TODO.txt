@@ -16,9 +16,8 @@ collisions - buggy and cruiser enemy
 
 Rocks
 
-Score display at top of screen
 Levels change settings and enemies and backgrounds
-sound effects - enemies - crashed buggy
+sound effects - enemies
 
 Starting menu 
 end game screen
@@ -35,3 +34,5 @@ pic - ground (bumpy ground)
 pic - enemies x 4 (or programmable colours)
 pic - buggy
 Enemies from top
+Score display at top of screen
+sound effects - enemies - crashed buggy
