@@ -1,20 +1,14 @@
 pic - enemy cruiser
-pic - rock
 pic - finish line
 
 Cruisers from side
 
 smart placement of finish line to end level
-Enemies drop bombs
 bomb explosion animation
-bomb causes potholes
 
 buggy explosion animation
 
-collisions - enemy bombs and buggy
 collisions - buggy and cruiser enemy
-
-Rocks
 
 Levels change settings and enemies and backgrounds
 sound effects - enemies
@@ -24,6 +18,11 @@ end game screen
 
 
 ## DONE
+collisions - enemy bombs and buggy
+Rocks
+bomb causes potholes
+pic - rock
+Enemies drop bombs
 Potholes
 collisions - buggy and hole / rock
 collisions - bullets and enemies
