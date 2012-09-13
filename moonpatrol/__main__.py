@@ -144,12 +144,16 @@ class Ufo(pygame.sprite.Sprite):
 class Car(pygame.sprite.Sprite):
 
 
-    def __init__(self, image, groundy, *groups):
+    def __init__(self, images, groundy, *groups):
         super(Car, self).__init__(*groups)
         self._speed = 0
-        self.image = image.convert_alpha()
+        if not isinstance(images, list): images = [images]
+        self.images = images
+        self.image = self.images[0] 
+        self.current_image = 0
+        self.image_clock = 0
         self.rect = pygame.Rect(
-            (100, groundy), image.get_size())
+            (100, groundy), images[0].get_size())
 
         self._xspeed = 0
         self._yspeed = 0
@@ -164,14 +168,21 @@ class Car(pygame.sprite.Sprite):
         self._xspeed = max(self._xspeed, -settings.BUGGY_SPEED)
         self._xspeed = min(self._xspeed, settings.BUGGY_SPEED)
 
-    def jump(self, force=50):
+    def jump(self, force=settings.BUGGY_JUMP_FORCE):
         if not self._jumping:
             self._yspeed = -force
             self._jumping = True
             self._sounds['jump'].play()
 
     def update(self):
+        self.image_clock += 1
+        if self.image_clock >= settings.BUGGY_ANIM_TIME:
+            self.image_clock = 0
+            self.current_image = (self.current_image + 1) % len(self.images)
+            self.image = self.images[self.current_image]
+
         self._yspeed += settings.GRAVITY
+        self._xspeed -= settings.BUGGY_FRICTION
         self.rect.move_ip(self._xspeed, self._yspeed)
         if self.rect.bottom >= self._groundy:
             self._yspeed = 0
@@ -239,10 +250,13 @@ def main():
     _terrain00 = scale2x(load(filepath('terrain00.png'))).convert_alpha()
     _terrain01 = scale2x(load(filepath('terrain01.png'))).convert_alpha()
     _midground = scale2x(load(filepath('mountains.png'))).convert_alpha()
-    _car = scale2x(load(filepath('patrol.png'))).convert_alpha()
+    _car0 = scale2x(load(filepath('rover00.png'))).convert_alpha()
+    _car1 = scale2x(load(filepath('rover01.png'))).convert_alpha()
+    _car2 = scale2x(load(filepath('rover02.png'))).convert_alpha()
+    _car3 = scale2x(load(filepath('rover03.png'))).convert_alpha()
 
     allsprites = pygame.sprite.Group()
-    car = Car(_car, settings.GROUND_HEIGHT, allsprites)
+    car = Car([_car0,_car1,_car2,_car3], settings.GROUND_HEIGHT, allsprites)
     bground = pygame.transform.scale(_bground, settings.DISPLAY_SIZE)
 
     starfield = Background(_starfield, 
