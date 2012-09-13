@@ -1,6 +1,7 @@
 import sys
 import time
 import random
+import textwrap
 
 import pygame
 from pygame.transform import scale2x, scale
@@ -21,6 +22,46 @@ def offscreen(x, y):
 def checkendgame(gs):
     return gs.lives == 0
 
+def startgame(screen):
+    """
+    Tell user about game. Show the keys.
+    """
+
+    _starfield = pygame.transform.scale(load(filepath('starfield.png')),
+                                        (settings.DISPLAY_SIZE)).convert()
+    screen.blit(_starfield, (0, 0))
+    font = pygame.font.Font(filepath('amiga4ever.ttf'), 16)
+
+    name = pygame.key.name
+    msg = textwrap.dedent("""
+    Moon Pytrol
+    Press %(left)s to slow down
+    Press %(right)s to speed up
+    Press %(jump)s to jump AND shoot.
+
+    Avoid the craters, rocks and bombs.
+    Press S to start
+    """) % dict(
+        left=name(SLOWDOWN).upper(),
+        right=name(SPEEDUP).upper(),
+        jump=name(JUMP).upper())
+
+    lines = msg.split('\n')
+
+    blitlines = map(lambda m: font.render(m, False, settings.HUD_TEXT), lines)
+    for i, line in enumerate(blitlines):
+        screen.blit(line, (100, i*50 + 100))
+    pygame.display.flip()
+
+    while 1:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == QUIT: sys.exit()
+                if event.key == pygame.K_q: sys.exit()
+                if event.key == pygame.K_s:
+                    return True
+
 def endgame(screen, gs):
     _starfield = pygame.transform.scale(load(filepath('starfield.png')),
                                         (settings.DISPLAY_SIZE)).convert()
@@ -29,7 +70,10 @@ def endgame(screen, gs):
     font = pygame.font.Font(filepath('amiga4ever.ttf'), 16)
     msg = font.render('So.. looks like its all over then..', 
                       False, settings.HUD_TEXT)
-    screen.blit(msg, (200, 200))
+    rstart = font.render('press R to restart', 
+                      False, settings.HUD_TEXT)
+    screen.blit(msg, (100, 200))
+    screen.blit(rstart, (100, 300))
     pygame.display.flip()
 
     while 1:
@@ -37,6 +81,10 @@ def endgame(screen, gs):
             if event.type == pygame.QUIT: sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == QUIT: sys.exit()
+                if event.key == pygame.K_q: sys.exit()
+                if event.key == pygame.K_r:
+                    # restart the game.
+                    return True
 
 def nearborder(entity, dist, rect=None):
     # returns bool list for near [up, right, down, left]
@@ -334,6 +382,12 @@ def main():
 
     screen = pygame.display.set_mode(settings.DISPLAY_SIZE)
 
+    while 1:
+        startgame(screen)
+        gs = game(screen)
+        endgame(screen, gs)
+
+def game(screen):
     _starfield = pygame.transform.scale(load(filepath('starfield.png')),
                                         (settings.DISPLAY_SIZE)).convert()
     _bground = load(filepath('mountains2.png')).convert_alpha()
@@ -498,4 +552,5 @@ def main():
         if checkendgame(gs):
             break
 
-    endgame(screen, gs)
+    return gs
+
