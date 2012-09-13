@@ -37,12 +37,14 @@ def nearborder(entity, dist, rect=None):
 
 class Pothole(pygame.sprite.Sprite):
 
-    _pothole = scale2x(load(filepath('pothole.png')))
+    _pothole00 = scale2x(load(filepath('pothole00.png')))
+    _pothole01 = scale2x(load(filepath('pothole01.png')))
+    _potholes = [_pothole00,_pothole01]
 
     def __init__(self, *groups, **kwargs):
         x = kwargs.get('x', settings.DISPLAY_SIZE[0])
         super(Pothole, self).__init__(*groups)
-        self.image = self._pothole
+        self.image = self._potholes[random.randint(0,len(self._potholes)-1)]
         self.rect = pygame.Rect(
             (x - self.image.get_width() / 2, settings.GROUND_HEIGHT-1),
              self.image.get_size())
@@ -249,7 +251,7 @@ def main():
     _bground = load(filepath('mountains2.png')).convert_alpha()
     _terrain00 = scale2x(load(filepath('terrain00.png'))).convert_alpha()
     _terrain01 = scale2x(load(filepath('terrain01.png'))).convert_alpha()
-    _midground = scale2x(load(filepath('mountains.png'))).convert_alpha()
+    _midground = scale2x(load(filepath('mountains00.png'))).convert_alpha()
     _car0 = scale2x(load(filepath('rover00.png'))).convert_alpha()
     _car1 = scale2x(load(filepath('rover01.png'))).convert_alpha()
     _car2 = scale2x(load(filepath('rover02.png'))).convert_alpha()
