@@ -410,6 +410,15 @@ def main():
         for ufo in enemies:
             makebomb(ufo.rect.x + ufo.rect.width/2, ufo.rect.bottom, bombs)
 
+        # check for killed bombs.
+        collided = pygame.sprite.groupcollide(
+                        bullets, bombs, True, True)
+
+        for bombs in collided.values():
+            for bomb in bombs:
+                bomb._sounds['dead'].play()
+                gs.incpoint()
+
         for bomb in bombs:
             if bomb.rect.bottom - 5 > settings.GROUND_HEIGHT:
                 placepothole(bomb.rect.x + bomb.rect.width/2, potholes)
