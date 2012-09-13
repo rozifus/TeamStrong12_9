@@ -402,8 +402,8 @@ def main():
         collided = pygame.sprite.groupcollide(
                         bullets, enemies, True, True)
 
-        for ufos in collided.values():
-            for ufo in ufos:
+        for ufo_colls in collided.values():
+            for ufo in ufo_colls:
                 ufo._sounds['dead'].play()
                 gs.incpoint()
 
@@ -414,9 +414,10 @@ def main():
         collided = pygame.sprite.groupcollide(
                         bullets, bombs, True, True)
 
-        for bombs in collided.values():
-            for bomb in bombs:
+        for bomb_colls in collided.values():
+            for bomb in bomb_colls:
                 bomb._sounds['dead'].play()
+                bomb.kill()
                 gs.incpoint()
 
         for bomb in bombs:
