@@ -176,6 +176,7 @@ class Bomb(pygame.sprite.Sprite):
         self._speedx = 0  
         self._speedy = 0 
         self._sounds = {
+            'drop': pygame.mixer.Sound(filepath('bomb-drop.wav')),
             'dead': pygame.mixer.Sound(filepath('explosion.wav'))}
 
     def update(self):
@@ -273,6 +274,7 @@ class GameState(object):
 def makebomb(x, y, bombs):
     if not random.randint(0, settings.UFO_BOMB_CHANCE):
         bomb = Bomb(x, y, bombs)
+        bomb._sounds['drop'].play()
 
 def makeenemy(enemies):
     if not random.randint(0, 50):
@@ -412,6 +414,8 @@ def main():
             if bomb.rect.bottom - 5 > settings.GROUND_HEIGHT:
                 placepothole(bomb.rect.x + bomb.rect.width/2, potholes)
                 bomb.kill()
+                bomb._sounds['dead'].play()
+
         # HUD display.
         hud = makehud(
             time=gs.time,
