@@ -163,7 +163,18 @@ class Car(pygame.sprite.Sprite):
 
         self._jumping = False
         self._sounds = {
+            'dead': pygame.mixer.Sound(filepath('buggy-hit.wav')),
             'jump': pygame.mixer.Sound(filepath('jump.wav'))}
+
+    def reset(self):
+        """
+        The car has died, reset its state.
+        """
+        self._xspeed = 0
+        self._yspeed = 0
+        self._jumping = False
+        self.rect.left = 100
+        self.rect.bottom = self._groundy
 
     def change_speed(self, direction):
         self._xspeed += direction * settings.BUGGY_SPEED
@@ -326,7 +337,14 @@ def main():
 
         # check player dead conditions.
         if pygame.sprite.spritecollideany(car, potholes):
+            # ok player is dead, time to restart the level.
+            potholes.empty()
+            enemies.empty()
+            bullets.empty()
+            car.reset()
+            car._sounds['dead'].play()
             gs.lives -= 1
+            gs._distance = 0
 
         # check enemy dead conditions.
         collided = pygame.sprite.groupcollide(
