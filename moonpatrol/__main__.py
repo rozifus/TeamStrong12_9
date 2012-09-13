@@ -41,13 +41,11 @@ class Pothole(pygame.sprite.Sprite):
     _pothole01 = scale2x(load(filepath('pothole01.png')))
     _potholes = [_pothole00,_pothole01]
 
-    def __init__(self, *groups, **kwargs):
-        x = kwargs.get('x', settings.DISPLAY_SIZE[0])
+    def __init__(self, x, *groups, **kwargs):
         super(Pothole, self).__init__(*groups)
         self.image = self._potholes[random.randint(0,len(self._potholes)-1)]
-        self.rect = pygame.Rect(
-            (x - self.image.get_width() / 2, settings.GROUND_HEIGHT-1),
-             self.image.get_size())
+        self.rect = pygame.Rect( (x, settings.GROUND_HEIGHT-1), 
+                                 self.image.get_size() )
 
     def update(self):
         self.rect.move_ip(-settings.GROUND_SPEED, 0)
@@ -143,6 +141,24 @@ class Ufo(pygame.sprite.Sprite):
         if offscreen(*self.rect.topleft):
             self.kill()
 
+class Bomb(pygame.sprite.Sprite):
+
+    _image = scale2x(load(filepath('bomb.png')))
+
+    def __init__(self, x, y, *groups):
+        super(Bomb, self).__init__(*groups)
+        width, height = self._image.get_size()
+        self.rect = pygame.Rect(x, y, width, height)
+        self.image = self._image 
+        self._speedx = 0  
+        self._speedy = 0 
+        self._sounds = {
+            'dead': pygame.mixer.Sound(filepath('explosion.wav'))}
+
+    def update(self):
+        self._speedy += settings.GRAVITY
+        self.rect.move_ip(self._speedx, self._speedy)
+
 class Car(pygame.sprite.Sprite):
 
 
@@ -193,8 +209,10 @@ class Car(pygame.sprite.Sprite):
 
 def makepothole(potholes):
     if not random.randint(0, 500):
-        Pothole(potholes)
+        placepothole(settings.DISPLAY_SIZE[0], potholes)
 
+def placepothole(x, potholes):
+    Pothole(x, potholes)
 
 class GameState(object):
 
@@ -217,6 +235,10 @@ class GameState(object):
 
     def incpoint(self):
         self.points += 1
+
+def makebomb(x, y, bombs):
+    if not random.randint(0, settings.UFO_BOMB_CHANCE):
+        bomb = Bomb(x, y, bombs)
 
 def makeenemy(enemies):
     if not random.randint(0, 50):
@@ -282,6 +304,8 @@ def main():
     # groups
     bullets = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
+    ufos = pygame.sprite.Group()
+    bombs = pygame.sprite.Group()
     potholes = pygame.sprite.Group()
     bgrounds = [starfield, background, midground, ground]
 
@@ -316,6 +340,7 @@ def main():
         gs.update();gs.incdist()
         enemies.update()
         potholes.update()
+        bombs.update()
         allsprites.update()
         bullets.update()
 
@@ -323,6 +348,7 @@ def main():
         enemies.draw(screen)
         bullets.draw(screen)
         potholes.draw(screen)
+        bombs.draw(screen)
 
         # check player dead conditions.
         if pygame.sprite.spritecollideany(car, potholes):
@@ -337,6 +363,13 @@ def main():
                 ufo._sounds['dead'].play()
                 gs.incpoint()
 
+        for ufo in enemies:
+            makebomb(ufo.rect.x + ufo.rect.width/2, ufo.rect.bottom, bombs)
+
+        for bomb in bombs:
+            if bomb.rect.bottom - 5 > settings.GROUND_HEIGHT:
+                placepothole(bomb.rect.x + bomb.rect.width/2, potholes)
+                bomb.kill()
         # HUD display.
         hud = makehud(
             time=gs.time,
