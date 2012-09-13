@@ -105,10 +105,12 @@ class Bullet(pygame.sprite.Sprite):
             (0, 0), (speedx, speedy), self.WIDTH)
         self._speedx = speedx
         self._speedy = speedy
+        self._distancex = 0
 
     def update(self):
         self.rect.move_ip(self._speedx, -self._speedy)
-        if offscreen(*self.rect.topleft):
+        self._distancex += self._speedx
+        if offscreen(*self.rect.topleft) or self._distancex > 200:
             self.kill()
 
 class Ufo(pygame.sprite.Sprite):
