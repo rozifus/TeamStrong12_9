@@ -1,5 +1,4 @@
 pic - enemy cruiser
-pic - finish line
 
 Cruisers from side
 
@@ -25,6 +24,7 @@ collisions - buggy and hole / rock
 collisions - bullets and enemies
 sound effects - jump - explosion
 pic - background
+pic - finish line
 pic - second background parallax
 pic - ground (bumpy ground)
 pic - enemies x 4 (or programmable colours)
