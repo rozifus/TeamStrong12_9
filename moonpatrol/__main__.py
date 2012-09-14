@@ -26,6 +26,8 @@ def startgame(screen):
     """
     Tell user about game. Show the keys.
     """
+    pygame.mixer.music.load(filepath('pink-delta_hiscore.mod'))
+    pygame.mixer.music.play()
 
     _starfield = pygame.transform.scale(load(filepath('starfield.png')),
                                         (settings.DISPLAY_SIZE)).convert()
@@ -55,7 +57,8 @@ def startgame(screen):
     screen.blit(textsurf, (0, 0))
     pygame.display.flip()
     clock = pygame.time.Clock()
-    s_to_start = font.render('Press S to start', False, settings.HUD_TEXT)
+    s_to_start = font.render('Press %s to start' % name(JUMP).upper(),
+                             False, settings.HUD_TEXT)
     t = time.time()
 
     while 1:
@@ -64,7 +67,7 @@ def startgame(screen):
             if event.type == pygame.KEYDOWN:
                 if event.key == QUIT: sys.exit()
                 if event.key == pygame.K_q: sys.exit()
-                if event.key == pygame.K_s:
+                if event.key == JUMP:
                     return True
 
         clock.tick(60)
@@ -421,7 +424,7 @@ def carefulcollide(left, right):
         return pygame.sprite.collide_mask(left, right)
 
 def makehud(time, points, lives, distance):
-    surf = pygame.Surface((350, 90))
+    surf = pygame.Surface((450, 90))
     surf.fill((200, 114, 53))
     font = makehud.font
     time = font.render('TIME\t%d' % int(time), False, settings.HUD_TEXT)
@@ -439,13 +442,13 @@ def main():
     """
     pygame.init()
 
-    pygame.mixer.music.load(filepath('pink-summertime.mod'))
-    pygame.mixer.music.play(-1)
     screen = pygame.display.set_mode(settings.DISPLAY_SIZE)
 
     while 1:
         startgame(screen)
         gs = game(screen)
+        pygame.mixer.music.load(filepath('pink-hawkeye_hiscore.mod'))
+        pygame.mixer.music.play(-1)
         if not gs.finished():
             endgame(screen, gs)
         else:
@@ -498,15 +501,18 @@ def game(screen):
 
     gs = GameState()
 
+    pygame.mixer.music.load(filepath('pink-summertime.mod'))
+    pygame.mixer.music.play(-1)
+
     while 1:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == QUIT: sys.exit()
-                if event.key == JUMP: car.jump()
+                if event.key == QUIT or event.key==pygame.K_q: sys.exit()
                 if event.key == SPEEDUP: car.change_speed(1)
                 if event.key == SLOWDOWN: car.change_speed(-1)
                 if event.key == JUMP: 
+                    car.jump()
                     rect = car.rect
                     Bullet(rect.left, rect.top, 0, 10, bullets)
                     Bullet(rect.centerx, rect.centery, 10, 0, bullets)
