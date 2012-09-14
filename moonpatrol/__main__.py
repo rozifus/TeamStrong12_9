@@ -169,6 +169,21 @@ class Pothole(pygame.sprite.Sprite):
         elif not offscreen(*self.rect.bottomright):
             self._new = False
 
+class Moonbase(pygame.sprite.Sprite):
+
+    _moonbase00 = scale2x(load(filepath('moonbase00.png')))
+
+    def __init__(self, x, *groups, **kwargs):
+        super(Moonbase, self).__init__(*groups)
+        self.image = self._moonbase00
+        self.rect = pygame.Rect( 
+                (x, settings.GROUND_HEIGHT - self.image.get_size()[1]+10), 
+                self.image.get_size() 
+                )
+
+    def update(self):
+        self.rect.move_ip(-settings.GROUND_SPEED, 0)
+
 class Rock(pygame.sprite.Sprite):
 
     _image = scale2x(load(filepath('rock00.png')))
@@ -400,6 +415,7 @@ class GameState(object):
         self.points = 0
         self.lives = 3
         self._distance = 0
+        self.atmoonbase = False
 
     def update(self):
         self.time = (time.time() - self._initialtime)
@@ -408,9 +424,13 @@ class GameState(object):
     def distance(self):
         return self._distance / 100
 
-    def finished(self):
+    def nearmoonbase(self):
         return self.distance >= settings.FINISH_DISTANCE
 
+    def finished(self):
+        #return self.distance >= settings.FINISH_DISTANCE
+        return self.atmoonbase
+    
     def incdist(self):
         self._distance += 1
 
@@ -508,6 +528,7 @@ def game(screen):
     allsprites = pygame.sprite.Group()
     car = Car([_car0, _car1, _car2, _car3], settings.GROUND_HEIGHT, allsprites)
     bground = pygame.transform.scale(_bground, settings.DISPLAY_SIZE)
+    moonbase = None
 
     MAXX, MAXY = settings.DISPLAY_SIZE
     GHEIGHT = settings.GROUND_HEIGHT
@@ -547,6 +568,7 @@ def game(screen):
     bombs = pygame.sprite.Group()
     rocks = pygame.sprite.Group()
     potholes = pygame.sprite.Group()
+    moonbases = pygame.sprite.Group()
     bgrounds = [starfield, background, midground, ground]
 
     _font = pygame.font.Font(filepath('amiga4ever.ttf'), 16)
@@ -576,6 +598,10 @@ def game(screen):
 
         makeenemy(enemies)
 
+        if gs.nearmoonbase():
+            if not moonbase:
+                moonbase = Moonbase(settings.DISPLAY_SIZE[0], moonbases)
+
         # only if there is below a certain threshold on screen.
         badstuff = sum(map(len, [potholes, rocks, bombs]))
         if badstuff < settings.MAX_BAD_STUFF:
@@ -604,6 +630,7 @@ def game(screen):
         allsprites.update()
         bullets.update()
         rocks.update()
+        moonbases.update()
 
         allsprites.draw(screen)
         enemies.draw(screen)
@@ -611,6 +638,14 @@ def game(screen):
         potholes.draw(screen)
         bombs.draw(screen)
         rocks.draw(screen)
+        moonbases.draw(screen)
+
+
+        if moonbase:
+            ratio_collide = pygame.sprite.collide_rect_ratio(0.9)
+            if ratio_collide(moonbase, car):
+                gs.atmoonbase = True
+
 
         # check player dead conditions.
         collided = pygame.sprite.spritecollide(car, badthings, False)
