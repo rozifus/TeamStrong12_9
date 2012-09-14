@@ -592,6 +592,8 @@ def game(screen):
                 bomb.kill()
                 gs.incpoint()
 
+        pygame.sprite.groupcollide(potholes, rocks, False, True)
+
         # check for killed rocks.
         collided = pygame.sprite.groupcollide(
                         bullets, rocks, True, True)
