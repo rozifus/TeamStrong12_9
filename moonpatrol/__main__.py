@@ -195,29 +195,49 @@ class Rock(pygame.sprite.Sprite):
 
 class Background(object):
 
-    def __init__(self, images, maxx, y, scrollspeed, randomize=False):
-        if not isinstance(images, list): images = [images]
+    def __init__(self, images, rect, scrollspeed, randomize=False):
+        if not isinstance(images, list):images = [images]
 
         self._scrollspeed = scrollspeed
         self._randomize = randomize
-        self._maxx = maxx
+        self._maxx = rect.right
+        self._maxy = rect.bottom
         self._images = images
         # image map is list of [image_index, image_location]
         self._image_map = [[0,0],] 
-        self._y = y
+        self._y = rect.top
 
     def render(self, screen):
+
         # move all images left and blit
         for im in self._image_map:
             im[1] -= self._scrollspeed
-            screen.blit(self._images[im[0]], (im[1],self._y))
+            x, y = im[1], self._y
+            img = self._images[im[0]]
+            width, height = img.get_size()
+            if x < 0:
+                sub_xstart = -x
+                width += x
+                x = 0
+            else: 
+                sub_xstart = 0
+
+            maxy = self._maxy
+            if (y + height) > maxy:
+                height = maxy - y
+
+            subsurf = img.subsurface(pygame.Rect(sub_xstart, 0, width, height))
+
+            screen.blit(subsurf, (x,self._y))
+
         # while there are not enough images on screen
         while(self._image_map[-1][1] < self._maxx):
             # get info for the last image
             last = self._image_map[-1]
             # if we're going random pick a random new image
             if self._randomize: 
-                next_image = random.randint(0, len(self._images)-1)
+                next_image = random.choice(self._images)
+
             # otherwise get the next image in our _images list
             else: next_image = (last[0]+1) % len(self._images)
             # place the next image at the end of the last image
@@ -454,6 +474,24 @@ def main():
         else:
             congrats(screen, gs)
 
+def render_star(screen, back):
+    back.render(screen)
+
+def render_terrain(screen, back):
+    back.render(screen)
+
+def render_midground(screen, back):
+    back.render(screen)
+
+def render_background(screen, back):
+    back.render(screen)
+
+def crop(surface, rect):
+    newsurf = pygame.Surface(rect.size)
+    newsurf.set_colorkey(settings.BLACK)
+    newsurf.blit(surface, (0,0))
+    return newsurf
+
 def game(screen):
     _starfield = pygame.transform.scale(load(filepath('starfield.png')),
                                         (settings.DISPLAY_SIZE)).convert()
@@ -466,22 +504,37 @@ def game(screen):
     _car2 = scale2x(load(filepath('rover02.png'))).convert_alpha()
     _car3 = scale2x(load(filepath('rover03.png'))).convert_alpha()
 
+
     allsprites = pygame.sprite.Group()
     car = Car([_car0,_car1,_car2,_car3], settings.GROUND_HEIGHT, allsprites)
     bground = pygame.transform.scale(_bground, settings.DISPLAY_SIZE)
 
-    starfield = Background(_starfield, 
-                    settings.DISPLAY_SIZE[0], 0, 0)
-    background = Background(bground, 
-                    settings.DISPLAY_SIZE[0], 100,
+    MAXX, MAXY = settings.DISPLAY_SIZE
+    GHEIGHT = settings.GROUND_HEIGHT
+
+    _largeterrain = pygame.Surface((MAXX, GHEIGHT))
+    _largeterrain.set_colorkey(settings.BLACK)
+    _terrains = [_terrain00, _terrain01]
+    width = 0
+    for i in range(10):
+        _largeterrain.blit(_terrains[0], (width, 0))
+        width += _terrains[0].get_size()[0]
+        _terrains.reverse()
+
+    starfield = Background(_starfield,
+                    pygame.Rect(0, 0, MAXX, GHEIGHT-10), 0)
+    background = Background(crop(bground,
+                                 pygame.Rect(0, 0, MAXX, GHEIGHT-100+5)),
+                    pygame.Rect(0, 100, MAXX, GHEIGHT-100+5),
                     settings.SCROLL_SPEED)
     
-    ground = Background([_terrain00, _terrain01],
-                        settings.DISPLAY_SIZE[0],
-                        settings.GROUND_HEIGHT,
+    ground = Background(crop(_largeterrain,
+                             pygame.Rect(0, 0, MAXX, MAXY-GHEIGHT)),
+                        pygame.Rect(0, GHEIGHT, MAXX, MAXY-GHEIGHT),
                         settings.GROUND_SPEED)
-    midground = Background(_midground,
-                        settings.DISPLAY_SIZE[0], 200,
+    midground = Background(crop(_midground,
+                                pygame.Rect(0, 0, MAXX, GHEIGHT-200+5)),
+                        pygame.Rect(0, 200, MAXX, GHEIGHT-200+5),
                         settings.SCROLL_SPEED + 1)
 
     clock = pygame.time.Clock()
@@ -538,7 +591,11 @@ def game(screen):
                     bombs, badthings)
 
         # blit first bit.
-        [b.render(screen) for b in bgrounds]
+        render_star(screen, bgrounds[0])
+        render_background(screen, bgrounds[1])
+        render_midground(screen, bgrounds[2])
+        render_terrain(screen, bgrounds[3])
+        #[b.render(screen) for b in bgrounds]
 
         gs.update();gs.incdist()
         enemies.update()
