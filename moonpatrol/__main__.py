@@ -32,6 +32,7 @@ def startgame(screen):
     screen.blit(_starfield, (0, 0))
     font = pygame.font.Font(filepath('amiga4ever.ttf'), 16)
 
+    textsurf = pygame.Surface(settings.DISPLAY_SIZE)
     name = pygame.key.name
     msg = textwrap.dedent("""
     Moon Pytrol
@@ -40,7 +41,6 @@ def startgame(screen):
     Press %(jump)s to jump AND shoot.
 
     Avoid the craters, rocks and bombs.
-    Press S to start
     """) % dict(
         left=name(SLOWDOWN).upper(),
         right=name(SPEEDUP).upper(),
@@ -50,8 +50,13 @@ def startgame(screen):
 
     blitlines = map(lambda m: font.render(m, False, settings.HUD_TEXT), lines)
     for i, line in enumerate(blitlines):
-        screen.blit(line, (100, i*50 + 100))
+        textsurf.blit(line, (100, i*50 + 50))
+    textsurf.set_colorkey(settings.BLACK)
+    screen.blit(textsurf, (0, 0))
     pygame.display.flip()
+    clock = pygame.time.Clock()
+    s_to_start = font.render('Press S to start', False, settings.HUD_TEXT)
+    t = time.time()
 
     while 1:
         for event in pygame.event.get():
@@ -61,6 +66,13 @@ def startgame(screen):
                 if event.key == pygame.K_q: sys.exit()
                 if event.key == pygame.K_s:
                     return True
+
+        clock.tick(60)
+        screen.blit(_starfield, (0, 0))
+        screen.blit(textsurf, (0, 0))
+        if int(time.time() - t) % 2:
+            screen.blit(s_to_start, (100, 450))
+        pygame.display.flip()
 
 def endgame(screen, gs):
     _starfield = pygame.transform.scale(load(filepath('starfield.png')),
@@ -118,9 +130,9 @@ class Pothole(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.move_ip(-settings.GROUND_SPEED, 0)
-        if offscreen(*self.rect.center) and not self._new:
+        if offscreen(*self.rect.bottomright) and not self._new:
             self.kill()
-        elif not offscreen(*self.rect.center):
+        elif not offscreen(*self.rect.bottomright):
             self._new = False
 
 class Rock(pygame.sprite.Sprite):
@@ -380,6 +392,8 @@ def main():
     """
     pygame.init()
 
+    pygame.mixer.music.load(filepath('pink-summertime.mod'))
+    pygame.mixer.music.play(-1)
     screen = pygame.display.set_mode(settings.DISPLAY_SIZE)
 
     while 1:
@@ -418,8 +432,6 @@ def game(screen):
                         settings.SCROLL_SPEED + 1)
 
     clock = pygame.time.Clock()
-    pygame.mixer.music.load(filepath('pink-summertime.mod'))
-    pygame.mixer.music.play(-1)
 
     # groups
     bullets = pygame.sprite.Group()
