@@ -20,7 +20,7 @@ def offscreen(x, y):
     return x > maxx or x < 0 or y > maxy or y < 0
 
 def checkendgame(gs):
-    return gs.lives == 0
+    return gs.lives == 0 or gs.finished()
 
 def startgame(screen):
     """
@@ -73,6 +73,37 @@ def startgame(screen):
         if int(time.time() - t) % 2:
             screen.blit(s_to_start, (100, 450))
         pygame.display.flip()
+
+
+def congrats(screen, gs):
+    _starfield = pygame.transform.scale(load(filepath('starfield.png')),
+                                        (settings.DISPLAY_SIZE)).convert()
+    screen.blit(_starfield, (0, 0))
+
+    font = pygame.font.Font(filepath('amiga4ever.ttf'), 16)
+    msg = font.render('CONGRATULATIONS', 
+                      False, settings.HUD_TEXT)
+    msg2 = font.render('You succeeded where thousands', 
+                      False, settings.HUD_TEXT)
+    msg2a = font.render('before you failed', 
+                      False, settings.HUD_TEXT)
+    msg3 = font.render('Press R to restart or Q to quit', 
+                      False, settings.HUD_TEXT)
+    screen.blit(msg, (50, 100))
+    screen.blit(msg2, (50, 150))
+    screen.blit(msg2a, (50, 180))
+    screen.blit(msg3, (50, 250))
+    pygame.display.flip()
+
+    while 1:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == QUIT: sys.exit()
+                if event.key == pygame.K_q: sys.exit()
+                if event.key == pygame.K_r:
+                    # restart the game.
+                    return True
 
 def endgame(screen, gs):
     _starfield = pygame.transform.scale(load(filepath('starfield.png')),
@@ -142,6 +173,7 @@ class Rock(pygame.sprite.Sprite):
     def __init__(self, *groups):
         super(Rock, self).__init__(*groups)
         self.image = self._image
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect = pygame.Rect(
             (settings.DISPLAY_SIZE[0], 
              settings.GROUND_HEIGHT - self.image.get_size()[1]),
@@ -259,6 +291,7 @@ class Bomb(pygame.sprite.Sprite):
         width, height = self._image.get_size()
         self.rect = pygame.Rect(x, y, width, height)
         self.image = self._image 
+        self.mask = pygame.mask.from_surface(self.image)
         self._speedx = 0  
         self._speedy = 0 
         self._sounds = {
@@ -278,6 +311,7 @@ class Car(pygame.sprite.Sprite):
         if not isinstance(images, list): images = [images]
         self.images = images
         self.image = self.images[0] 
+        self.mask = pygame.mask.from_surface(self.image)
         self.current_image = 0
         self.image_clock = 0
         self.rect = pygame.Rect(
@@ -351,6 +385,9 @@ class GameState(object):
     def distance(self):
         return self._distance / 100
 
+    def finished(self):
+        return self.distance >= settings.FINISH_DISTANCE
+
     def incdist(self):
         self._distance += 1
 
@@ -372,6 +409,16 @@ def makeenemy(enemies):
 def makerock(*groups):
     if not random.randint(0, 50):
         Rock(*groups)
+
+def carefulcollide(left, right):
+    if isinstance(right, Car):
+        left, right = right, left
+
+    if isinstance(right, Pothole):
+        x, y = right.rect.midtop
+        return left.rect.contains(pygame.Rect(x, y, 1, 1))
+    else:
+        return pygame.sprite.collide_mask(left, right)
 
 def makehud(time, points, lives, distance):
     surf = pygame.Surface((350, 90))
@@ -399,7 +446,10 @@ def main():
     while 1:
         startgame(screen)
         gs = game(screen)
-        endgame(screen, gs)
+        if not gs.finished():
+            endgame(screen, gs)
+        else:
+            congrats(screen, gs)
 
 def game(screen):
     _starfield = pygame.transform.scale(load(filepath('starfield.png')),
@@ -503,16 +553,19 @@ def game(screen):
         collided = pygame.sprite.spritecollide(car, badthings, False)
         if collided:
             # ok player collided with a bad thing should be dead... but 
-            potholes.empty()
-            enemies.empty()
-            bullets.empty()
-            bombs.empty()
-            rocks.empty()
-            badthings.empty()
-            car.reset()
-            car._sounds['dead'].play()
-            gs.lives -= 1
-            gs._distance = 0
+            reallyhit = pygame.sprite.spritecollide(
+                            car, collided, False, carefulcollide)
+            if reallyhit:
+                potholes.empty()
+                enemies.empty()
+                bullets.empty()
+                bombs.empty()
+                rocks.empty()
+                badthings.empty()
+                car.reset()
+                car._sounds['dead'].play()
+                gs.lives -= 1
+                gs._distance = 0
 
         # check enemy dead conditions.
         collided = pygame.sprite.groupcollide(
@@ -546,7 +599,7 @@ def game(screen):
 
         for bomb in bombs:
             if bomb.rect.bottom - 5 > settings.GROUND_HEIGHT:
-                placepothole(bomb.rect.x + bomb.rect.width/2, potholes)
+                placepothole(bomb.rect.centerx, potholes, badthings)
                 bomb.kill()
                 bomb._sounds['dead'].play()
 
