@@ -461,13 +461,13 @@ def game(screen):
     _terrain00 = scale2x(load(filepath('terrain00.png'))).convert_alpha()
     _terrain01 = scale2x(load(filepath('terrain01.png'))).convert_alpha()
     _midground = scale2x(load(filepath('mountains00.png'))).convert_alpha()
-    _car0 = scale2x(load(filepath('rover00.png'))).convert_alpha()
-    _car1 = scale2x(load(filepath('rover01.png'))).convert_alpha()
-    _car2 = scale2x(load(filepath('rover02.png'))).convert_alpha()
-    _car3 = scale2x(load(filepath('rover03.png'))).convert_alpha()
+    _car0 = scale2x(load(filepath('buggy00.png'))).convert_alpha()
+    _car1 = scale2x(load(filepath('buggy01.png'))).convert_alpha()
+    _car2 = scale2x(load(filepath('buggy02.png'))).convert_alpha()
+    _car3 = scale2x(load(filepath('buggy03.png'))).convert_alpha()
 
     allsprites = pygame.sprite.Group()
-    car = Car([_car0,_car1,_car2,_car3], settings.GROUND_HEIGHT, allsprites)
+    car = Car([_car0, _car1, _car2, _car3], settings.GROUND_HEIGHT, allsprites)
     bground = pygame.transform.scale(_bground, settings.DISPLAY_SIZE)
 
     starfield = Background(_starfield, 
