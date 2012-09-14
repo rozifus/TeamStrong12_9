@@ -514,8 +514,8 @@ def game(screen):
                 if event.key == JUMP: 
                     car.jump()
                     rect = car.rect
-                    Bullet(rect.left, rect.top, 0, 10, bullets)
-                    Bullet(rect.centerx, rect.centery, 10, 0, bullets)
+                    Bullet(rect.left+15, rect.top, 0, 10, bullets)
+                    Bullet(rect.right-10, rect.centery+5, 10, 0, bullets)
                 if event.key == pygame.K_p:
                     import pdb;pdb.set_trace()
 
