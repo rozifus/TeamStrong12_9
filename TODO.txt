@@ -13,9 +13,6 @@ collisions - buggy and cruiser enemy
 Levels change settings and enemies and backgrounds
 sound effects - enemies
 
-Starting menu 
-end game screen
-
 
 ## DONE
 collisions - enemy bombs and buggy
@@ -35,3 +32,5 @@ pic - buggy
 Enemies from top
 Score display at top of screen
 sound effects - enemies - crashed buggy
+Starting menu 
+end game screen
